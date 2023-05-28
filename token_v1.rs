@@ -36,8 +36,7 @@ pub fn init_my_token(account: &mut Account) -> Result<()> {
     associated_account.init(MyTokenData::default());
 }
 
-//we need some way to make sure that 
-//these symbols resolve to the same symbol on all programs
+// make sure this is a public symbol that gets resolved at link time
 #[interface]
 impl TokenInterface for Token {
     fn transfer(from: &mut Token, to: &mut Token, amount: u64) {
