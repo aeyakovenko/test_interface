@@ -1,5 +1,8 @@
 // token.rs
 // public definition of the interface
+
+// this indicates that Token structure should be in it's own account
+#[account];
 pub struct Token {
     authority: Pubkey,
     balance: u64
@@ -23,28 +26,18 @@ pub trait TokenInterface {
 
 // myprogram.rs
 // private implementation of the token interface
+// automatically derives an account address based on the type
+// if the Token type is in Account A, MyTokenData should be in A.pubkey.with_seed("MyTokenData")
+#[associated_account(Token)];
 struct MyTokenData {
     counter: u64,
-}
-
-// my token initializer
-// also initializes an associated object that is derived from the account address
-pub fn init_my_token(account: &mut Account) -> Result<()> {
-    account.init(Token::default())?;
-    //get the associated account
-    let mut associated_account = get_account(account.pubkey.with_seed("mydata"))?;
-    associated_account.init(MyTokenData::default());
 }
 
 // make sure this is a public symbol that gets resolved at link time
 #[interface]
 impl TokenInterface for Token {
     fn transfer(from: &mut Token, to: &mut Token, amount: u64) {
-        let account = get_account_from_object(from);
-
-        //get the associated object
-        let mut my_data_account = get_account_from_pubkey(account.pubkey.with_seed("mydata"));
-        let mut my_data: MyTokenData = my_data_account.get_object();
+        let my_data: &mut MyTokenData  = get_associated_account<MyTokenData>(from);
 
         //my custom code
         my_data.counter += 1;
